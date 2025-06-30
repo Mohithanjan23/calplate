@@ -10,7 +10,7 @@ export default function Home() {
     calories: '',
     protein: '',
     carbs: '',
-    fat: ''
+    fat: '',
   });
 
   useEffect(() => {
@@ -20,6 +20,11 @@ export default function Home() {
   const fetchMeals = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('User not logged in');
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from('meals')
@@ -69,14 +74,21 @@ export default function Home() {
   };
 
   const handleUpdate = async (id) => {
+    const { meal, calories, protein, carbs, fat } = editForm;
+
+    if (!meal.trim() || !calories || !protein || !carbs || !fat) {
+      alert("All fields are required.");
+      return;
+    }
+
     const { error } = await supabase
       .from('meals')
       .update({
-        ...editForm,
-        calories: Number(editForm.calories),
-        protein: Number(editForm.protein),
-        carbs: Number(editForm.carbs),
-        fat: Number(editForm.fat),
+        meal: meal.trim(),
+        calories: Number(calories),
+        protein: Number(protein),
+        carbs: Number(carbs),
+        fat: Number(fat),
       })
       .eq('id', id);
 
@@ -114,39 +126,51 @@ export default function Home() {
                     value={editForm.meal}
                     onChange={handleEditChange}
                     className="border px-2 py-1 rounded w-full"
+                    required
                   />
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <input
                       name="calories"
+                      type="number"
                       value={editForm.calories}
                       onChange={handleEditChange}
                       className="border px-2 py-1 rounded"
                       placeholder="Calories"
+                      required
                     />
                     <input
                       name="protein"
+                      type="number"
                       value={editForm.protein}
                       onChange={handleEditChange}
                       className="border px-2 py-1 rounded"
                       placeholder="Protein"
+                      required
                     />
                     <input
                       name="carbs"
+                      type="number"
                       value={editForm.carbs}
                       onChange={handleEditChange}
                       className="border px-2 py-1 rounded"
                       placeholder="Carbs"
+                      required
                     />
                     <input
                       name="fat"
+                      type="number"
                       value={editForm.fat}
                       onChange={handleEditChange}
                       className="border px-2 py-1 rounded"
                       placeholder="Fat"
+                      required
                     />
                   </div>
                   <div className="flex justify-end gap-2">
-                    <button onClick={() => setEditingId(null)} className="text-sm text-gray-600">
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="text-sm text-gray-600"
+                    >
                       Cancel
                     </button>
                     <button
@@ -162,7 +186,7 @@ export default function Home() {
                   <div className="flex justify-between items-center mb-1">
                     <h3 className="text-lg font-semibold">{meal.meal}</h3>
                     <p className="text-sm text-gray-500">
-                      {new Date(meal.date).toLocaleString()}
+                      {meal.date ? new Date(meal.date).toLocaleString() : 'N/A'}
                     </p>
                   </div>
                   <div className="flex justify-between text-sm text-gray-700">

@@ -1,12 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
-import './index.css';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import AddMeal from './pages/AddMeal.jsx';
-import Stats from './pages/Stats.jsx';
-import Home from './pages/Home.jsx';
-import Auth from './pages/Auth.jsx';
+import App from './App';
+import Home from './pages/Home';
+import AddMeal from './pages/AddMeal';
+import Stats from './pages/Stats';
+import Suggestions from './pages/Suggestions';
+import Goals from './pages/Goals';
+import WorkoutLog from './pages/WorkoutLog';
+import AuthPage from './pages/AuthPage';
+import './index.css';
 
 const router = createBrowserRouter([
   {
@@ -15,13 +18,16 @@ const router = createBrowserRouter([
     children: [
       { path: '/', element: <Home /> },
       { path: '/add', element: <AddMeal /> },
-      { path: '/stats', element: <Stats /> }
-    ]
+      { path: '/stats', element: <Stats /> },
+      { path: '/suggestions', element: <Suggestions /> },
+      { path: '/goals', element: <Goals /> },
+      { path: '/workouts', element: <WorkoutLog /> },
+    ],
   },
   {
     path: '/auth',
-    element: <Auth />
-  }
+    element: <AuthPage />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(

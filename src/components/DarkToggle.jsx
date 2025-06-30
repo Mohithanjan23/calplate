@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
 export default function DarkToggle() {
-  const [darkMode, setDarkMode] = useState(() =>
-    localStorage.getItem('theme') === 'dark'
-  );
+  const [darkMode, setDarkMode] = useState(() => {
+    return (
+      localStorage.getItem('theme') === 'dark' ||
+      (!localStorage.getItem('theme') &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches)
+    );
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -19,8 +23,9 @@ export default function DarkToggle() {
 
   return (
     <button
-      onClick={() => setDarkMode(!darkMode)}
-      className="fixed top-4 right-4 z-50 p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-black dark:text-white shadow-md"
+      onClick={() => setDarkMode((prev) => !prev)}
+      className="fixed top-4 right-4 z-50 p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-black dark:text-white shadow-md transition"
+      title="Toggle Dark Mode"
     >
       {darkMode ? <Sun size={20} /> : <Moon size={20} />}
     </button>

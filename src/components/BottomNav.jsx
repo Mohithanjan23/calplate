@@ -1,11 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, BarChart2 } from 'lucide-react';
+import { Home, PlusCircle, BarChart2, CircleWavyCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Dumbbell } from 'lucide-react';
+import { Target } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', icon: Home, path: '/' },
   { label: 'Add', icon: PlusCircle, path: '/add' },
   { label: 'Stats', icon: BarChart2, path: '/stats' },
+  { label: 'Suggest', icon: CircleWavyCheck, path: '/suggestions' },
+  { label: 'Workout', icon: Dumbbell, path: '/workouts' },
+  { label: 'Goal', icon: Target, path: '/goals' }
 ];
 
 export default function BottomNav() {
@@ -18,7 +23,7 @@ export default function BottomNav() {
         const isActive = current === path;
 
         const handleClick = () => {
-          if (navigator.vibrate) navigator.vibrate(15); // haptic feedback
+          if (navigator.vibrate) navigator.vibrate(15);
         };
 
         return (

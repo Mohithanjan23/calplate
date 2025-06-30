@@ -7,8 +7,10 @@ import AuthPage from './pages/AuthPage';
 import { Outlet } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import DarkToggle from './components/DarkToggle';
-
-
+import Suggestions from './pages/Suggestions';
+import Goals from './pages/Goals';
+import WorkoutLog from './pages/WorkoutLog';
+import Stats from './pages/Stats';
 
 function App() {
   return (
@@ -28,6 +30,10 @@ function App() {
           <Route path="/add" element={<AddMeal />} />
           <Route path="/stats" element={<Stats />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/suggestions" element={<Suggestions />} />
+          <Route path="/goals" element={<Goals />} />
+          <Route path="/workouts" element={<WorkoutLog />} />
+          <Route path="/stats" element={<Stats />} />
         </Routes>
       </div>
       <BottomNav />

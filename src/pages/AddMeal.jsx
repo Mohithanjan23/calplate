@@ -16,7 +16,7 @@ export default function AddMeal() {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert("User not logged in.");
+      alert("⚠️ User not logged in.");
       setLoading(false);
       return;
     }
@@ -50,23 +50,23 @@ export default function AddMeal() {
 
   return (
     <div className="max-w-md mx-auto mt-6 px-4">
-      <h2 className="text-xl font-semibold mb-4 text-center">Add a Meal</h2>
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <h2 className="text-xl font-semibold mb-4 text-center">🍽️ Log Your Meal</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          placeholder="Meal Name"
+          placeholder="Meal Name (e.g. Breakfast, Lunch)"
           value={meal}
           onChange={(e) => setMeal(e.target.value)}
           required
-          className="w-full px-3 py-2 border rounded"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <input
           type="number"
-          placeholder="Calories"
+          placeholder="Total Calories"
           value={calories}
           onChange={(e) => setCalories(e.target.value)}
           required
-          className="w-full px-3 py-2 border rounded"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <div className="grid grid-cols-3 gap-2">
           <input
@@ -74,21 +74,21 @@ export default function AddMeal() {
             placeholder="Protein (g)"
             value={protein}
             onChange={(e) => setProtein(e.target.value)}
-            className="px-2 py-2 border rounded"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="number"
             placeholder="Carbs (g)"
             value={carbs}
             onChange={(e) => setCarbs(e.target.value)}
-            className="px-2 py-2 border rounded"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <input
             type="number"
             placeholder="Fat (g)"
             value={fat}
             onChange={(e) => setFat(e.target.value)}
-            className="px-2 py-2 border rounded"
+            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
         <input
@@ -96,14 +96,18 @@ export default function AddMeal() {
           value={date}
           onChange={(e) => setDate(e.target.value)}
           required
-          className="w-full px-3 py-2 border rounded"
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          className={`w-full py-2 rounded-lg font-semibold text-white transition ${
+            loading
+              ? 'bg-blue-300 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
         >
-          {loading ? "Saving..." : "Add Meal"}
+          {loading ? 'Saving...' : 'Add Meal'}
         </button>
       </form>
     </div>

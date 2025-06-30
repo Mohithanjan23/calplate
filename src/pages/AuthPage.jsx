@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 
-export default function Home() {
+export default function AuthPage() {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({ meal: '', calories: '', protein: '', carbs: '', fat: '' });
+  const [editForm, setEditForm] = useState({
+    meal: '', calories: '', protein: '', carbs: '', fat: '',
+  });
 
   useEffect(() => {
     fetchMeals();
@@ -13,7 +15,13 @@ export default function Home() {
 
   const fetchMeals = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (!user || userError) {
+      alert('⚠️ No authenticated user. Please login.');
+      setLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from('meals')
@@ -38,10 +46,10 @@ export default function Home() {
   const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this meal?')) {
       const { error } = await supabase.from('meals').delete().eq('id', id);
-      if (error) {
-        alert('Error deleting meal');
-      } else {
+      if (!error) {
         setMeals((prev) => prev.filter((m) => m.id !== id));
+      } else {
+        alert('❌ Error deleting meal');
       }
     }
   };
@@ -63,22 +71,21 @@ export default function Home() {
   };
 
   const handleUpdate = async (id) => {
-    const { error } = await supabase
-      .from('meals')
-      .update({
-        ...editForm,
-        calories: Number(editForm.calories),
-        protein: Number(editForm.protein),
-        carbs: Number(editForm.carbs),
-        fat: Number(editForm.fat),
-      })
-      .eq('id', id);
+    const updatedMeal = {
+      ...editForm,
+      calories: Number(editForm.calories),
+      protein: Number(editForm.protein),
+      carbs: Number(editForm.carbs),
+      fat: Number(editForm.fat),
+    };
+
+    const { error } = await supabase.from('meals').update(updatedMeal).eq('id', id);
 
     if (error) {
-      alert('Update failed: ' + error.message);
+      alert('❌ Update failed: ' + error.message);
     } else {
       setMeals((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, ...editForm } : m))
+        prev.map((m) => (m.id === id ? { ...m, ...updatedMeal } : m))
       );
       setEditingId(null);
     }
@@ -87,7 +94,7 @@ export default function Home() {
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-center">Your Meals</h1>
+        <h1 className="text-2xl font-bold text-center">🍴 Your Meals</h1>
         <button onClick={handleLogout} className="text-sm text-red-600 underline">Logout</button>
       </div>
 
@@ -101,7 +108,13 @@ export default function Home() {
             <div key={meal.id} className="border rounded-md p-4 shadow-sm">
               {editingId === meal.id ? (
                 <div className="space-y-2">
-                  <input name="meal" value={editForm.meal} onChange={handleEditChange} className="border px-2 py-1 rounded w-full" />
+                  <input
+                    name="meal"
+                    value={editForm.meal}
+                    onChange={handleEditChange}
+                    className="w-full px-2 py-1 border rounded"
+                    placeholder="Meal Name"
+                  />
                   <div className="grid grid-cols-2 gap-2">
                     <input name="calories" value={editForm.calories} onChange={handleEditChange} className="border px-2 py-1 rounded" placeholder="Calories" />
                     <input name="protein" value={editForm.protein} onChange={handleEditChange} className="border px-2 py-1 rounded" placeholder="Protein" />
@@ -117,9 +130,7 @@ export default function Home() {
                 <>
                   <div className="flex justify-between items-center mb-1">
                     <h3 className="text-lg font-semibold">{meal.meal}</h3>
-                    <p className="text-sm text-gray-500">
-                      {new Date(meal.date).toLocaleString()}
-                    </p>
+                    <p className="text-sm text-gray-500">{new Date(meal.date).toLocaleString()}</p>
                   </div>
                   <div className="flex justify-between text-sm text-gray-700">
                     <p>Calories: {meal.calories}</p>
