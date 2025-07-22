@@ -6,13 +6,10 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "@react-navigation/elements": "^2.5.2",
-    "@vercel/speed-insights": "^1.2.0",
-    "framer-motion": "^12.20.2",
-    "lucide-react": "^0.525.0",
-    "react-router-dom": "^7.6.3",
-    "recharts": "^3.0.2"
+ "dependencies": {
+  "next": "^14.1.0",
+  "react": "^18.2.0",
+  "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
