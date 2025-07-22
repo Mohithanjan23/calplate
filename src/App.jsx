@@ -1,43 +1,38 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import AddMeal from './pages/AddMeal';
-import Stats from './pages/Stats';
+// This is the new content for `src/App.jsx`
+// This is now a layout component that protects its children.
+
+import { useEffect } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 import BottomNav from './components/BottomNav';
-import AuthPage from './pages/AuthPage';
-import { Outlet } from 'react-router-dom';
-import BottomNav from './components/BottomNav';
-import DarkToggle from './components/DarkToggle';
-import Suggestions from './pages/Suggestions';
-import Goals from './pages/Goals';
-import WorkoutLog from './pages/WorkoutLog';
-import Stats from './pages/Stats';
+import Header from './components/Header';
 
 function App() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If the user is not authenticated, this effect redirects them to the login page.
+    if (!isAuthenticated) {
+      navigate('/auth');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // While the redirect is happening, we can render nothing or a loading spinner.
+  if (!isAuthenticated) {
+    return null; 
+  }
+
+  // If the user is authenticated, render the main app layout.
+  // <Outlet /> renders the correct page based on the URL (Home, Stats, etc.)
   return (
-    <Router>
-      <div className="pb-20">
-        <div className="pb-16"> {/* padding for nav */}
-      <Outlet />
+    <div className="min-h-screen pt-16 pb-20 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+      <Header />
+      <main>
+        <Outlet />
+      </main>
       <BottomNav />
     </div>
-    <div className="pb-16">
-      <DarkToggle />
-      <Outlet />
-      <BottomNav />
-    </div>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/add" element={<AddMeal />} />
-          <Route path="/stats" element={<Stats />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/suggestions" element={<Suggestions />} />
-          <Route path="/goals" element={<Goals />} />
-          <Route path="/workouts" element={<WorkoutLog />} />
-          <Route path="/stats" element={<Stats />} />
-        </Routes>
-      </div>
-      <BottomNav />
-    </Router>
   );
 }
 

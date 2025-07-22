@@ -1,8 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, BarChart2, CircleWavyCheck } from 'lucide-react';
+import {
+  Home,
+  PlusCircle,
+  BarChart2,
+  CircleWavyCheck,
+  Dumbbell,
+  Target,
+  Search,
+  LayoutDashboard
+} from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Dumbbell } from 'lucide-react';
-import { Target } from 'lucide-react';
 
 const navItems = [
   { label: 'Home', icon: Home, path: '/' },
@@ -10,7 +17,9 @@ const navItems = [
   { label: 'Stats', icon: BarChart2, path: '/stats' },
   { label: 'Suggest', icon: CircleWavyCheck, path: '/suggestions' },
   { label: 'Workout', icon: Dumbbell, path: '/workouts' },
-  { label: 'Goal', icon: Target, path: '/goals' }
+  { label: 'Goal', icon: Target, path: '/goals' },
+  { label: 'Search', icon: Search, path: '/search' }, // Optional
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' } // Optional
 ];
 
 export default function BottomNav() {
@@ -22,16 +31,12 @@ export default function BottomNav() {
       {navItems.map(({ label, icon: Icon, path }) => {
         const isActive = current === path;
 
-        const handleClick = () => {
-          if (navigator.vibrate) navigator.vibrate(15);
-        };
-
         return (
           <Link
             to={path}
             key={path}
-            onClick={handleClick}
-            className="flex flex-col items-center gap-1 text-xs relative group"
+            onClick={() => navigator.vibrate?.(15)}
+            className="flex-1 flex flex-col items-center gap-1 text-xs relative group"
           >
             <motion.div
               animate={{ scale: isActive ? 1.2 : 1 }}
