@@ -1,161 +1,125 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../services/supabaseClient';
+// src/pages/AddMeal.jsx - Now with an AI Scanner!
+import { useState } from 'react';
+import ManualMealForm from '../components/ManualMealForm'; // We'll create this next
+import { Camera } from 'lucide-react';
 
-export default function AuthPage() {
-  const [meals, setMeals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({
-    meal: '', calories: '', protein: '', carbs: '', fat: '',
-  });
+// --- AI SCANNER COMPONENT ---
+const AiScanner = () => {
+    const [image, setImage] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState('');
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchMeals();
-  }, []);
-
-  const fetchMeals = async () => {
-    setLoading(true);
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (!user || userError) {
-      alert('⚠️ No authenticated user. Please login.');
-      setLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from('meals')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching meals:', error.message);
-    } else {
-      setMeals(data);
-    }
-
-    setLoading(false);
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.reload();
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm('Are you sure you want to delete this meal?')) {
-      const { error } = await supabase.from('meals').delete().eq('id', id);
-      if (!error) {
-        setMeals((prev) => prev.filter((m) => m.id !== id));
-      } else {
-        alert('❌ Error deleting meal');
-      }
-    }
-  };
-
-  const handleEditClick = (meal) => {
-    setEditingId(meal.id);
-    setEditForm({
-      meal: meal.meal,
-      calories: meal.calories,
-      protein: meal.protein,
-      carbs: meal.carbs,
-      fat: meal.fat,
-    });
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleUpdate = async (id) => {
-    const updatedMeal = {
-      ...editForm,
-      calories: Number(editForm.calories),
-      protein: Number(editForm.protein),
-      carbs: Number(editForm.carbs),
-      fat: Number(editForm.fat),
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImage(file);
+            setPreviewUrl(URL.createObjectURL(file));
+            setResults([]); // Clear previous results
+        }
     };
 
-    const { error } = await supabase.from('meals').update(updatedMeal).eq('id', id);
+    const analyzeImage = async () => {
+        if (!image) {
+            alert('Please select an image first.');
+            return;
+        }
+        setLoading(true);
+        setResults([]);
 
-    if (error) {
-      alert('❌ Update failed: ' + error.message);
-    } else {
-      setMeals((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, ...updatedMeal } : m))
-      );
-      setEditingId(null);
-    }
-  };
+        // This is a simplified example. In a real app, you'd have a backend
+        // function to securely handle the API call with your PAT.
+        // For this example, we'll assume a secure setup.
+
+        // NOTE: You would typically call your own backend endpoint here,
+        // which then calls the Clarifai API. For simplicity in this example,
+        // we're showing the structure of what that backend call would do.
+        // Direct frontend calls are not recommended for production.
+        
+        // This is a placeholder for the API call result.
+        // Replace this with your actual Clarifai API call logic.
+        setTimeout(() => {
+            const mockApiResult = [
+                { name: 'Scrambled Eggs', value: 0.98 },
+                { name: 'Toast', value: 0.95 },
+                { name: 'Coffee', value: 0.89 },
+            ];
+            setResults(mockApiResult);
+            setLoading(false);
+        }, 2000); // Simulate API call delay
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="relative border-2 border-dashed border-white/30 rounded-lg p-6 text-center">
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div className="flex flex-col items-center justify-center">
+                    <Camera size={40} className="text-text-secondary mb-2" />
+                    {previewUrl ? (
+                        <img src={previewUrl} alt="Meal preview" className="max-h-48 rounded-lg" />
+                    ) : (
+                        <p className="text-text-secondary">Click to upload a photo</p>
+                    )}
+                </div>
+            </div>
+
+            {previewUrl && (
+                <button
+                    onClick={analyzeImage}
+                    disabled={loading}
+                    className={`w-full py-3 rounded-lg font-semibold text-white transition ${loading ? 'bg-primary/50 cursor-not-allowed' : 'bg-primary hover:bg-primary-dark'}`}
+                >
+                    {loading ? 'Analyzing...' : '✨ Analyze Meal'}
+                </button>
+            )}
+
+            {results.length > 0 && (
+                <div>
+                    <h3 className="font-bold mb-2">Detected Items:</h3>
+                    <ul className="space-y-2">
+                        {results.map(item => (
+                            <li key={item.name} className="bg-black/20 p-3 rounded-lg flex justify-between">
+                                <span>{item.name}</span>
+                                <button className="text-sm text-primary font-semibold">Log</button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// --- MAIN AddMeal PAGE COMPONENT ---
+export default function AddMeal() {
+  const [activeTab, setActiveTab] = useState('scan'); // 'scan' or 'manual'
+
+  const TabButton = ({ tabName, children }) => (
+    <button
+      onClick={() => setActiveTab(tabName)}
+      className={`w-full py-2 font-semibold transition-colors rounded-t-lg ${
+        activeTab === tabName ? 'bg-surface text-primary' : 'bg-transparent text-text-secondary'
+      }`}
+    >
+      {children}
+    </button>
+  );
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-center">🍴 Your Meals</h1>
-        <button onClick={handleLogout} className="text-sm text-red-600 underline">Logout</button>
+    <div className="p-4">
+      <div className="flex">
+        <TabButton tabName="scan">Scan with AI</TabButton>
+        <TabButton tabName="manual">Manual Entry</TabButton>
       </div>
 
-      {loading ? (
-        <p className="text-center">Loading meals...</p>
-      ) : meals.length === 0 ? (
-        <p className="text-center">No meals logged yet. Go add one!</p>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {meals.map((meal) => (
-            <div key={meal.id} className="border rounded-md p-4 shadow-sm">
-              {editingId === meal.id ? (
-                <div className="space-y-2">
-                  <input
-                    name="meal"
-                    value={editForm.meal}
-                    onChange={handleEditChange}
-                    className="w-full px-2 py-1 border rounded"
-                    placeholder="Meal Name"
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input name="calories" value={editForm.calories} onChange={handleEditChange} className="border px-2 py-1 rounded" placeholder="Calories" />
-                    <input name="protein" value={editForm.protein} onChange={handleEditChange} className="border px-2 py-1 rounded" placeholder="Protein" />
-                    <input name="carbs" value={editForm.carbs} onChange={handleEditChange} className="border px-2 py-1 rounded" placeholder="Carbs" />
-                    <input name="fat" value={editForm.fat} onChange={handleEditChange} className="border px-2 py-1 rounded" placeholder="Fat" />
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <button onClick={() => setEditingId(null)} className="text-sm text-gray-600">Cancel</button>
-                    <button onClick={() => handleUpdate(meal.id)} className="text-sm text-blue-600 font-medium">Update</button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="flex justify-between items-center mb-1">
-                    <h3 className="text-lg font-semibold">{meal.meal}</h3>
-                    <p className="text-sm text-gray-500">{new Date(meal.date).toLocaleString()}</p>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-700">
-                    <p>Calories: {meal.calories}</p>
-                    <p>P: {meal.protein}g | C: {meal.carbs}g | F: {meal.fat}g</p>
-                  </div>
-                  <div className="text-right mt-2 space-x-2">
-                    <button
-                      onClick={() => handleEditClick(meal)}
-                      className="text-xs text-blue-500 underline hover:text-blue-700"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(meal.id)}
-                      className="text-xs text-red-500 underline hover:text-red-700"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="bg-surface p-1 rounded-b-lg">
+        {activeTab === 'scan' ? <AiScanner /> : <ManualMealForm />}
+      </div>
     </div>
   );
 }
