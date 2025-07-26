@@ -92,3 +92,52 @@ export async function searchFoods(query = '') {
     }, 300); // Simulated network delay
   });
 }
+export const getMealsFromLast7Days = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setHours(0, 0, 0, 0); // Start of the day 7 days ago
+
+  const { data, error } = await supabase
+    .from('meal_logs')
+    .select('created_at, calories')
+    .eq('user_id', user.id)
+    .gte('created_at', sevenDaysAgo.toISOString());
+
+  if (error) {
+    console.error('Error fetching weekly meals:', error);
+    return [];
+  }
+  return data;
+};
+/**
+ * Fetches a daily meal plan from the Spoonacular API.
+ * @param {number} targetCalories - The target calorie amount for the day.
+ * @param {string} diet - The dietary preference (e.g., 'vegetarian', 'vegan').
+ */
+export const getMealSuggestions = async (targetCalories, diet) => {
+  const apiKey = import.meta.env.VITE_SPOONACULAR_API_KEY;
+  if (!apiKey) {
+    throw new Error("Spoonacular API key not found.");
+  }
+
+  let url = `https://api.spoonacular.com/mealplanner/generate?apiKey=${apiKey}&timeFrame=day&targetCalories=${targetCalories}`;
+  
+  if (diet) {
+    url += `&diet=${diet}`;
+  }
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`API call failed with status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching meal suggestions:", error);
+    throw error;
+  }
+};
