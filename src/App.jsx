@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -24,6 +25,15 @@ function App() {
   // <Outlet /> renders the correct page component based on the URL.
   return (
     <div className="min-h-screen bg-background text-text-primary pt-16 pb-20">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: '#1E1E1E', // 'surface' color
+            color: '#FFFFFF', // 'text-primary' color
+          },
+        }}
+      />
       <Header />
       <main>
         <Outlet />
