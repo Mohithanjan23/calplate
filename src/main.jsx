@@ -1,15 +1,12 @@
-// This is the new content for `src/main.jsx`
-// This centralizes your routing configuration.
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { SpeedInsights } from "@vercel/speed-insights/react";
 import './index.css';
 
-// Import your page and layout components
+// Import layout and page components
 import App from './App';
+import AuthPage from './pages/AuthPage';
 import Home from './pages/Home';
 import AddMeal from './pages/AddMeal';
 import Stats from './pages/Stats';
@@ -17,33 +14,37 @@ import Suggestions from './pages/Suggestions';
 import Goals from './pages/Goals';
 import WorkoutLog from './pages/WorkoutLog';
 import FoodSearch from './pages/FoodSearch';
-import AuthPage from './pages/AuthPage';
+import Profile from './pages/Profile';
+import BMICalculator from './pages/BMICalculator';
 
+// Define the application's routes
 const router = createBrowserRouter([
   {
     path: '/auth',
-    element: <AuthPage />,
+    element: <AuthPage />, // Standalone public route for authentication
   },
   {
     path: '/',
-    element: <App />, // App.jsx is the layout for all protected pages
+    element: <App />, // The main layout for all protected pages
     children: [
-      { index: true, element: <Home /> },
-      { path: 'add', element: <AddMeal /> },
-      { path: 'stats', element: <Stats /> },
-      { path: 'suggestions', element: <Suggestions /> },
-      { path: 'goals', element: <Goals /> },
-      { path: 'workouts', element: <WorkoutLog /> },
-      { path: 'search', element: <FoodSearch /> },
+      { index: true, element: <Home /> }, // Dashboard
+      { path: 'add', element: <AddMeal /> }, // AI Scanner & Manual Log
+      { path: 'stats', element: <Stats /> }, // Weekly/Monthly Stats
+      { path: 'suggestions', element: <Suggestions /> }, // Meal Suggestions
+      { path: 'goals', element: <Goals /> }, // Fitness Goals
+      { path: 'workouts', element: <WorkoutLog /> }, // Workout Logging
+      { path: 'search', element: <FoodSearch /> }, // Food Database Search
+      { path: 'profile', element: <Profile /> }, // User Profile Settings
+      { path: 'bmi', element: <BMICalculator /> }, // BMI Calculator
     ],
   },
 ]);
 
+// Render the application
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
       <RouterProvider router={router} />
-      <SpeedInsights />
     </AuthProvider>
   </React.StrictMode>
 );
