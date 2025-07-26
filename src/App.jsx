@@ -1,11 +1,8 @@
-// This is the new content for `src/App.jsx`
-// This is now a layout component that protects its children.
-
 import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import BottomNav from './components/BottomNav';
 import Header from './components/Header';
+import BottomNav from './components/BottomNav';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -18,15 +15,15 @@ function App() {
     }
   }, [isAuthenticated, navigate]);
 
-  // While the redirect is happening, we can render nothing or a loading spinner.
+  // While the authentication check is happening or redirecting, render nothing.
   if (!isAuthenticated) {
-    return null; 
+    return null;
   }
 
   // If the user is authenticated, render the main app layout.
-  // <Outlet /> renders the correct page based on the URL (Home, Stats, etc.)
+  // <Outlet /> renders the correct page component based on the URL.
   return (
-    <div className="min-h-screen pt-16 pb-20 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-background text-text-primary pt-16 pb-20">
       <Header />
       <main>
         <Outlet />
