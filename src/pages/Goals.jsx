@@ -1,115 +1,112 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
+import Card from '../components/Card';
+import { Target, CheckCircle } from 'lucide-react';
 
 export default function Goals() {
-  const [goals, setGoals] = useState({
-    calories: '',
-    protein: '',
-    carbs: '',
-    fat: '',
-    workoutsPerWeek: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [currentGoal, setCurrentGoal] = useState('');
+  const [newGoal, setNewGoal] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
+  const goalOptions = {
+    '': 'Select a Goal',
+    'fat_loss': 'Fat Loss',
+    'muscle_gain': 'Muscle Gain',
+    'maintenance': 'Maintain Wellness',
+  };
+
+  // Fetch the user's current goal when the page loads
   useEffect(() => {
-    fetchGoals();
-  }, []);
+    async function getProfileGoal() {
+      if (!user) return;
+      
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('goal')
+        .eq('id', user.id)
+        .single();
 
-  const fetchGoals = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data, error } = await supabase
-      .from('goals')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (data) {
-      setGoals(data);
-      setEditMode(false);
-    } else {
-      setEditMode(true);
+      if (error) {
+        console.warn('Error fetching goal:', error);
+      } else if (data) {
+        setCurrentGoal(data.goal || '');
+        setNewGoal(data.goal || '');
+      }
+      setLoading(false);
     }
-  };
+    getProfileGoal();
+  }, [user]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setGoals((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
+  // Update the user's goal in the database
+  const handleUpdateGoal = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    setSuccessMessage('');
 
     const { error } = await supabase
-      .from('goals')
-      .upsert({ ...goals, user_id: user.id }, { onConflict: ['user_id'] });
+      .from('profiles')
+      .update({ goal: newGoal })
+      .eq('id', user.id);
 
     if (error) {
-      alert('❌ Error saving goals: ' + error.message);
+      alert('Error updating goal: ' + error.message);
     } else {
-      alert('✅ Goals saved!');
-      setEditMode(false);
+      setCurrentGoal(newGoal);
+      setSuccessMessage('Goal updated successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000); // Clear message after 3 seconds
     }
-
     setLoading(false);
   };
 
   return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">Your Goals</h1>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          name="calories"
-          type="number"
-          value={goals.calories}
-          onChange={handleChange}
-          placeholder="Daily Calorie Goal"
-          className="w-full border px-3 py-2 rounded"
-        />
-        <div className="grid grid-cols-3 gap-2">
-          <input
-            name="protein"
-            type="number"
-            value={goals.protein}
-            onChange={handleChange}
-            placeholder="Protein (g)"
-            className="border px-2 py-2 rounded"
-          />
-          <input
-            name="carbs"
-            type="number"
-            value={goals.carbs}
-            onChange={handleChange}
-            placeholder="Carbs (g)"
-            className="border px-2 py-2 rounded"
-          />
-          <input
-            name="fat"
-            type="number"
-            value={goals.fat}
-            onChange={handleChange}
-            placeholder="Fat (g)"
-            className="border px-2 py-2 rounded"
-          />
+    <div className="p-4 space-y-6">
+      <div className="flex items-center gap-3">
+        <Target size={28} />
+        <h1 className="text-3xl font-bold">My Fitness Goal</h1>
+      </div>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-text-secondary mb-2">Current Goal</h2>
+        <p className="text-2xl font-bold text-primary">
+          {loading ? 'Loading...' : goalOptions[currentGoal] || 'Not Set'}
+        </p>
+      </Card>
+
+      <Card>
+        <form onSubmit={handleUpdateGoal} className="space-y-4">
+          <label htmlFor="goal" className="block text-lg font-semibold text-text-secondary">
+            Update Your Goal
+          </label>
+          <select 
+            id="goal" 
+            value={newGoal}
+            onChange={(e) => setNewGoal(e.target.value)}
+            className="w-full px-4 py-3 bg-black/20 rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            {Object.entries(goalOptions).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={loading || newGoal === currentGoal}
+            className="w-full py-3 rounded-lg font-semibold text-white transition bg-primary hover:bg-primary-dark disabled:bg-primary/50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Saving...' : 'Save Goal'}
+          </button>
+        </form>
+      </Card>
+
+      {successMessage && (
+        <div className="flex items-center justify-center gap-2 text-green-400">
+          <CheckCircle size={20} />
+          <p>{successMessage}</p>
         </div>
-        <input
-          name="workoutsPerWeek"
-          type="number"
-          value={goals.workoutsPerWeek}
-          onChange={handleChange}
-          placeholder="Workouts / week"
-          className="w-full border px-3 py-2 rounded"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-        >
-          {loading ? 'Saving...' : 'Save Goals'}
-        </button>
-      </form>
+      )}
     </div>
   );
 }
