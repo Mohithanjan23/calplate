@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # React + Vite
 
-Visit the live site here 👉 [calplate on Netlify](https://aquamarine-kangaroo-267fdc.netlify.app/)
+Visit the live site here 👉 [calplate on Netlify](https://calplate.netlify.app/)
 
 Currently, two official plugins are available:
 
