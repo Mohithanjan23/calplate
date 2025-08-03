@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
-import Card from '../components/Card';
+import Card from '../components/Card.jsx';
 import { Target } from 'lucide-react';
 import toast from 'react-hot-toast';
 

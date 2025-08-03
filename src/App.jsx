@@ -29,7 +29,7 @@ function App() {
         position="top-center"
         toastOptions={{
           style: {
-            background: '#1E1E1E', // 'surface' color
+            background: '#000c45ff', // 'surface' color
             color: '#FFFFFF', // 'text-primary' color
           },
         }}

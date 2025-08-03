@@ -11,6 +11,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "clarifai": "^2.9.1",
+    "framer-motion": "^12.23.12",
     "lucide-react": "^0.417.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

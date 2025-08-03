@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getMealsFromLast7Days } from '../services/foodService';
-import Card from '../components/Card';
+import Card from '../components/Card.jsx';
 import { BarChart2 } from 'lucide-react';
 
 export default function Stats() {

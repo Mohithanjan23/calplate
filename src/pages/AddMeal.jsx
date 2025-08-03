@@ -1,59 +1,136 @@
-// src/pages/AddMeal.jsx
-
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ManualMealForm from '../components/ManualMealForm';
 import { Camera, RefreshCw } from 'lucide-react';
-import { ClarifaiStub, grpc } from "clarifai-nodejs-grpc";
+import Card from '../components/Card';
 
 const AiScanner = () => {
-  const navigate = useNavigate();
-  // ... (all the state from the previous AiScanner example: image, previewUrl, results, loading, error)
-  const [image, setImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const [image, setImage] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState('');
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setError('');
+            setResults([]);
+            setImage(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
 
-  const analyzeImage = async () => {
-    // ... (The full analyzeImage function with the Clarifai API call)
-    // This is the same function from our last response.
-  };
+    const analyzeImage = async () => {
+        if (!image) return;
+        setLoading(true);
+        setError('');
+        setResults([]);
 
-  // The crucial next step is to make this function work!
-  const handleLogItem = (itemName) => {
-    // Navigate to the manual form and pass the detected item name as state
-    navigate('/add', { state: { activeTab: 'manual', foodName: itemName } });
-  };
+        const reader = new FileReader();
+        reader.readAsDataURL(image);
+        reader.onload = async () => {
+            const base64Image = reader.result.split(',')[1];
+            
+            const USER_ID = 'clarifai';
+            const APP_ID = 'main';
+            const MODEL_ID = 'food-item-recognition';
+            const PAT = import.meta.env.VITE_CLARIFAI_PAT;
 
-  return (
-    <div className="space-y-4">
-      {/* ... (The UI for the file upload and "Analyze" button) ... */}
-      {results.length > 0 && (
-        <div>
-          <h3 className="font-bold mb-2">Detected Items:</h3>
-          <ul className="space-y-2">
-            {results.map(item => (
-              <li key={item.id} className="bg-black/20 p-3 rounded-lg flex justify-between items-center">
-                <span>{item.name}</span>
-                {/* This button now navigates to the form to confirm */}
-                <button onClick={() => handleLogItem(item.name)} className="text-sm text-primary font-semibold hover:underline">
-                  Confirm & Log
+            try {
+                const response = await fetch(`https://api.clarifai.com/v2/users/${USER_ID}/apps/${APP_ID}/models/${MODEL_ID}/outputs`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': `Key ${PAT}`
+                    },
+                    body: JSON.stringify({
+                        "inputs": [
+                            { "data": { "image": { "base64": base64Image } } }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const concepts = data.outputs[0].data.concepts;
+                setResults(concepts);
+
+            } catch (err) {
+                console.error("Clarifai fetch error:", err);
+                setError("Sorry, something went wrong analyzing the image.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        reader.onerror = () => {
+            setLoading(false);
+            setError("Failed to read the image file.");
+        };
+    };
+    
+    const handleLogItem = (itemName) => {
+        navigate('/add', { state: { activeTab: 'manual', foodName: itemName } });
+    };
+
+    return (
+        <Card className="!p-4 space-y-4">
+            <div className="relative border-2 border-dashed border-white/30 rounded-lg p-6 text-center">
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div className="flex flex-col items-center justify-center">
+                    <Camera size={40} className="text-text-secondary mb-2" />
+                    {previewUrl ? (
+                        <img src={previewUrl} alt="Meal preview" className="max-h-48 rounded-lg" />
+                    ) : (
+                        <p className="text-text-secondary">Click to upload a photo</p>
+                    )}
+                </div>
+            </div>
+
+            {previewUrl && (
+                <button
+                    onClick={analyzeImage}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-white transition bg-primary hover:bg-primary-dark disabled:bg-primary/50 disabled:cursor-not-allowed"
+                >
+                    {loading && <RefreshCw className="animate-spin" size={20} />}
+                    {loading ? 'Analyzing...' : '✨ Analyze Meal'}
                 </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
+            )}
+
+            {error && <p className="text-red-400 text-center">{error}</p>}
+
+            {results.length > 0 && (
+                <div>
+                    <h3 className="font-bold mb-2">Detected Items:</h3>
+                    <ul className="space-y-2">
+                        {results.map(item => (
+                            <li key={item.id} className="bg-black/20 p-3 rounded-lg flex justify-between items-center">
+                                <span>{item.name}</span>
+                                <button onClick={() => handleLogItem(item.name)} className="text-sm text-primary font-semibold hover:underline">
+                                  Confirm & Log
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </Card>
+    );
 };
 
 
 export default function AddMeal() {
   const location = useLocation();
-  // Set the initial tab based on navigation state, otherwise default to 'scan'
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'scan');
 
   const TabButton = ({ tabName, children }) => (
@@ -71,9 +148,9 @@ export default function AddMeal() {
     <div className="p-4">
       <div className="flex">
         <TabButton tabName="scan">Scan with AI</TabButton>
-        <TabB/utton tabName="manual">Manual Entry</TabButton>
+        <TabButton tabName="manual">Manual Entry</TabButton>
       </div>
-      <div className="bg-surface p-1 rounded-b-lg">
+      <div className="bg-surface rounded-b-lg">
         {activeTab === 'scan' ? <AiScanner /> : <ManualMealForm />}
       </div>
     </div>
