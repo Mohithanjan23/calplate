@@ -17,7 +17,8 @@ import WorkoutLog from './pages/WorkoutLog';
 import FoodSearch from './pages/FoodSearch';
 import Profile from './pages/Profile';
 import BMICalculator from './pages/BMICalculator.jsx';
-
+import Nutrition from './pages/Nutrition.jsx';
+import Recipes from './pages/Recipes.jsx';
 
 const router = createBrowserRouter([
   {
@@ -38,6 +39,9 @@ const router = createBrowserRouter([
       { path: 'search', element: <FoodSearch /> },
       { path: 'profile', element: <Profile /> },
       { path: 'bmi', element: <BMICalculator /> },
+      { path: 'edit-dashboard', element: <EditDashboard /> },
+      { path: 'nutrition', element: <Nutrition /> },
+      { path: 'recipes', element: <Recipes /> },
     ],
   },
 ]);
