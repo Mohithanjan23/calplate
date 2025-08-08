@@ -37,7 +37,7 @@ const router = createBrowserRouter([
       { path: 'workouts', element: <WorkoutLog /> },
       { path: 'search', element: <FoodSearch /> },
       { path: 'profile', element: <Profile /> },
-      { path: 'bmi', element: <BMICalculgator /> },
+      { path: 'bmi', element: <BMICalculator /> },
       { path: 'edit-dashboard', element: <EditDashboard /> },
       { path: 'nutrition', element: <Nutrition /> },
       { path: 'recipes', element: <Recipes /> },
