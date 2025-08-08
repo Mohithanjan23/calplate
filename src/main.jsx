@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import App from './App';
 import './index.css';
+
 
 // Import components
 import App from './App';
@@ -18,7 +18,7 @@ import Profile from './pages/Profile';
 import BMICalculator from './pages/BMICalculator.jsx';
 import Nutrition from './pages/Nutrition.jsx';
 import Recipes from './pages/Recipes.jsx';
-import EditDashboard from './pages/EditDashboard.jsx'; // Add this missing import
+import EditDashboard from './pages/EditDashboard.jsx';
 
 const router = createBrowserRouter([
   {
@@ -38,17 +38,17 @@ const router = createBrowserRouter([
       { path: 'search', element: <FoodSearch /> },
       { path: 'profile', element: <Profile /> },
       { path: 'bmi', element: <BMICalculator /> },
+      { path: 'bmi', element: <BMICalculator /> }, 
       { path: 'edit-dashboard', element: <EditDashboard /> },
       { path: 'nutrition', element: <Nutrition /> },
       { path: 'recipes', element: <Recipes /> },
+      { path: 'bmi', element: <BMICalculator /> },
     ],
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <App />
   </React.StrictMode>
 );
