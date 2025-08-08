@@ -14,7 +14,6 @@ export default function Stats() {
       setLoading(true);
       const meals = await getMealsFromLast7Days();
 
-      // Process the data: group meals by date and sum calories
       const dailyData = meals.reduce((acc, meal) => {
         const date = new Date(meal.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         if (!acc[date]) {
@@ -24,15 +23,13 @@ export default function Stats() {
         return acc;
       }, {});
 
-      // Convert the processed data into an array for Recharts
       const formattedChartData = Object.keys(dailyData).map(date => ({
         date,
         calories: dailyData[date],
-      })).sort((a, b) => new Date(a.date) - new Date(b.date)); // Ensure dates are in order
+      })).sort((a, b) => new Date(a.date) - new Date(b.date));
       
       setChartData(formattedChartData);
       
-      // Calculate average calories
       if (formattedChartData.length > 0) {
         const totalCalories = formattedChartData.reduce((sum, day) => sum + day.calories, 0);
         setAverageCalories(Math.round(totalCalories / formattedChartData.length));
@@ -58,21 +55,15 @@ export default function Stats() {
         <h2 className="text-lg font-semibold text-text-secondary mb-4">Last 7 Days - Calorie Intake</h2>
         <div style={{ width: '100%', height: 300 }}>
           <ResponsiveContainer>
-            <LineChart
-              data={chartData}
-              margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
-            >
+            <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-              <XAxis dataKey="date" stroke="#B3B3B3" />
-              <YAxis stroke="#B3B3B3" />
+              <XAxis dataKey="date" stroke="#A9A9A9" />
+              <YAxis stroke="#A9A9A9" />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(30, 30, 30, 0.8)',
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                }}
+                contentStyle={{ backgroundColor: '#1A1A1A', borderColor: 'rgba(255, 255, 255, 0.2)' }}
                 labelStyle={{ color: '#FFFFFF' }}
               />
-              <Line type="monotone" dataKey="calories" stroke="#9D50BB" strokeWidth={2} activeDot={{ r: 8 }} />
+              <Line type="monotone" dataKey="calories" stroke="#8A2BE2" strokeWidth={2} activeDot={{ r: 8 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

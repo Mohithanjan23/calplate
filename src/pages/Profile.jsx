@@ -1,15 +1,10 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
+import Card from '../components/Card.jsx';
 import toast from 'react-hot-toast';
+import { Settings, User, LogOut, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import {
-    User,
-    Shield,
-    Settings,
-    LogOut,
-    ChevronRight,
-    Target
-} from 'lucide-react';
 
 // Reusable component for each menu item
 const ProfileMenuItem = ({ icon, label, path = '#' }) => (
@@ -22,9 +17,20 @@ const ProfileMenuItem = ({ icon, label, path = '#' }) => (
     </Link>
 );
 
-
 export default function Profile() {
   const { user, signOut } = useAuth();
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    async function getProfile() {
+      if (!user) return;
+      const { data } = await supabase.from('profiles').select(`username`).eq('id', user.id).single();
+      if (data) {
+        setUsername(data.username || '');
+      }
+    }
+    getProfile();
+  }, [user]);
 
   return (
     <div className="p-4 space-y-6">
@@ -34,16 +40,15 @@ export default function Profile() {
             <User size={32} />
         </div>
         <div>
-            <h1 className="text-2xl font-bold">{user?.user_metadata?.full_name || 'Username'}</h1>
-            <p className="text-text-secondary">{user?.email}</p>
+            <h1 className="text-2xl font-bold">{username || user?.email}</h1>
+            <p className="text-text-secondary">Your personal AI nutritionist</p>
         </div>
       </div>
 
       {/* Profile Menu List */}
       <div className="space-y-3">
-        <ProfileMenuItem icon={<Target className="text-primary"/>} label="My Goals" path="/goals" />
-        <ProfileMenuItem icon={<Settings className="text-primary"/>} label="Settings" />
-        <ProfileMenuItem icon={<Shield className="text-primary"/>} label="Privacy" />
+        <ProfileMenuItem icon={<Settings className="text-primary"/>} label="Settings" path="/settings" />
+        <ProfileMenuItem icon={<User className="text-primary"/>} label="Edit Profile" />
       </div>
 
       {/* Sign Out Button */}
@@ -58,4 +63,4 @@ export default function Profile() {
       </div>
     </div>
   );
-};
+}

@@ -1,62 +1,68 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
-import Card from '../components/Card.jsx';
 import toast from 'react-hot-toast';
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
     
+    const { error } = isLogin 
+      ? await supabase.auth.signInWithPassword({ email, password })
+      : await supabase.auth.signUp({ email, password });
+
     if (error) {
-      toast.error(error.error_description || error.message);
+      toast.error(error.message);
     } else {
-      toast.success('Signed in successfully!');
-      navigate('/');
+      toast.success(isLogin ? 'Welcome back!' : 'Account created! Check your email to verify.');
+      if (isLogin) navigate('/');
     }
     setLoading(false);
   };
-
-  const handleSignup = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
-    
-    if (error) {
-      toast.error(error.error_description || error.message);
-    } else {
-      toast.success('Check your email for the verification link!');
-    }
-    setLoading(false);
-  };
-
-  const inputStyles = "w-full px-4 py-2 bg-black/20 rounded-lg border border-white/20 focus:outline-none focus:ring-2 focus:ring-primary";
+  
+  const inputStyles = "w-full px-4 py-3 bg-surface text-text-primary border border-white/20 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none transition";
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center mb-2 text-primary">Welcome to CALPLATE</h1>
-        <p className="text-center text-text-secondary mb-8">Sign in or create an account</p>
-        <form className="space-y-4">
-          <input className={inputStyles} type="email" placeholder="Your email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input className={inputStyles} type="password" placeholder="Your password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <div className="flex flex-col sm:flex-row gap-4 pt-2">
-            <button onClick={handleLogin} className="w-full py-2 bg-primary hover:bg-primary-dark font-bold rounded-lg transition-colors" disabled={loading}>
-              {loading ? 'Signing In...' : 'Sign In'}
-            </button>
-            <button onClick={handleSignup} className="w-full py-2 bg-transparent border border-primary text-primary hover:bg-primary/20 font-bold rounded-lg transition-colors" disabled={loading}>
-              {loading ? 'Signing Up...' : 'Sign Up'}
-            </button>
-          </div>
+    <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-md">
+        <h1 className="text-4xl font-bold text-center mb-2 text-primary">Cal AI</h1>
+        <p className="text-center text-text-secondary mb-8">{isLogin ? 'Welcome back.' : 'Create your account.'}</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input 
+            type="email" 
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={inputStyles}
+          />
+          <input 
+            type="password" 
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={inputStyles}
+          />
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-violet-700 disabled:bg-primary/50 transition"
+          >
+            {loading ? 'Processing...' : (isLogin ? 'Log In' : 'Sign Up')}
+          </button>
         </form>
-      </Card>
+
+        <button onClick={() => setIsLogin(!isLogin)} className="w-full mt-4 text-sm text-center text-text-secondary hover:underline">
+          {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Log In'}
+        </button>
+      </div>
     </div>
   );
 }

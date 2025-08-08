@@ -7,8 +7,7 @@ import './index.css';
 // Import components
 import App from './App';
 import AuthPage from './pages/AuthPage';
-import Dashboard from './pages/Dashboard.jsx'; // Import Dashboard
-// ... import other pages
+import Dashboard from './pages/Dashboard.jsx';
 import AddMeal from './pages/AddMeal';
 import Stats from './pages/Stats';
 import Suggestions from './pages/Suggestions';
@@ -19,6 +18,7 @@ import Profile from './pages/Profile';
 import BMICalculator from './pages/BMICalculator.jsx';
 import Nutrition from './pages/Nutrition.jsx';
 import Recipes from './pages/Recipes.jsx';
+import EditDashboard from './pages/EditDashboard.jsx'; // Add this missing import
 
 const router = createBrowserRouter([
   {
@@ -29,8 +29,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
-      { index: true, element: <Dashboard /> }, // Use Dashboard here
-      // ... other routes
+      { index: true, element: <Dashboard /> },
       { path: 'add', element: <AddMeal /> },
       { path: 'stats', element: <Stats /> },
       { path: 'suggestions', element: <Suggestions /> },
@@ -38,7 +37,7 @@ const router = createBrowserRouter([
       { path: 'workouts', element: <WorkoutLog /> },
       { path: 'search', element: <FoodSearch /> },
       { path: 'profile', element: <Profile /> },
-      { path: 'bmi', element: <BMICalculator /> },
+      { path: 'bmi', element: <BMICalculgator /> },
       { path: 'edit-dashboard', element: <EditDashboard /> },
       { path: 'nutrition', element: <Nutrition /> },
       { path: 'recipes', element: <Recipes /> },
