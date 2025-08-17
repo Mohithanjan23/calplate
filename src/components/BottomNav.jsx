@@ -1,34 +1,51 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Home, BarChart2, Settings, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { Home, Book, User, Calendar } from 'lucide-react';
+import MealPrepRecommendations from './MealPrepRecommendations';
 
-export default function BottomNav() {
-  const location = useLocation();
+const BottomNav = () => {
+  const [showMealPlan, setShowMealPlan] = useState(false);
 
   const navItems = [
-    { label: 'Home', icon: Home, path: '/' },
-    { label: 'Progress', icon: BarChart2, path: '/progress' },
-    { label: 'Settings', icon: Settings, path: '/settings' },
+    { to: '/dashboard', icon: Home, label: 'Home' },
+    { to: '/meals', icon: Book, label: 'Meals' },
+    { id: 'prep', icon: Calendar, label: 'Meal Prep' },
+    { to: '/profile', icon: User, label: 'Profile' },
   ];
 
+  const baseClasses = "flex flex-col items-center py-2 px-4 rounded-lg transition-colors text-gray-500 hover:text-gray-700";
+  const activeClasses = "text-green-600 bg-green-50";
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-100">
-      <div className="flex justify-around items-center max-w-md mx-auto relative">
-        {navItems.map(({ label, icon: Icon, path }) => (
-          <Link 
-            key={path}
-            to={path}
-            className={`flex flex-col items-center gap-1 text-xs ${location.pathname === path ? 'text-black font-semibold' : 'text-gray-400'}`}
-          >
-            <Icon />
-            {label}
-          </Link>
-        ))}
-        <div className="absolute -top-16">
-          <button className="w-16 h-16 bg-black rounded-full flex items-center justify-center text-white shadow-lg">
-            <Plus size={32} />
-          </button>
+    <>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+        <div className="flex justify-around max-w-md mx-auto">
+          {navItems.map((item) => (
+            item.to ? (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => `${baseClasses} ${isActive ? activeClasses : ''}`}
+              >
+                <item.icon className="w-5 h-5 mb-1" />
+                <span className="text-xs">{item.label}</span>
+              </NavLink>
+            ) : (
+              <button
+                key={item.id}
+                onClick={() => setShowMealPlan(true)}
+                className={`${baseClasses} ${showMealPlan ? activeClasses : ''}`}
+              >
+                <item.icon className="w-5 h-5 mb-1" />
+                <span className="text-xs">{item.label}</span>
+              </button>
+            )
+          ))}
         </div>
       </div>
-    </nav>
+      {showMealPlan && <MealPrepRecommendations onClose={() => setShowMealPlan(false)} />}
+    </>
   );
-}
+};
+
+export default BottomNav;

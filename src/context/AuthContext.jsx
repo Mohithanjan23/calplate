@@ -1,5 +1,20 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../services/supabaseClient';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+
+// NOTE: Replace this with your actual Supabase client setup
+const supabase = {
+  auth: {
+    signUp: async ({ email, password }) => ({ data: { user: { id: '1', email } }, error: null }),
+    signInWithPassword: async ({ email, password }) => ({ data: { user: { id: '1', email }, session: { access_token: 'token' } }, error: null }),
+    signOut: async () => ({ error: null }),
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: (callback) => ({ data: { subscription: { unsubscribe: () => {} } } }),
+  },
+  from: (table) => ({
+    select: () => ({ eq: () => Promise.resolve({ data: [], error: null }) }),
+    insert: (data) => Promise.resolve({ data, error: null }),
+    update: (data) => ({ eq: () => Promise.resolve({ data, error: null }) }),
+  }),
+};
 
 const AuthContext = createContext();
 
@@ -9,37 +24,52 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-    };
-    getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
       }
-    );
+      setLoading(false);
+    };
+
+    getInitialSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session);
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
+      } else {
+        setUser(null);
+      }
+    });
 
     return () => subscription?.unsubscribe();
   }, []);
 
-  const value = {
-    session,
-    user,
-    isAuthenticated: !!user,
-    signOut: () => supabase.auth.signOut(),
-    loading,
+  const fetchUserProfile = async (userId) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (data) {
+      setUser(data);
+    }
+    return data;
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    supabase,
+    session,
+    user,
+    setUser,
+    loading,
+    signOut: () => supabase.auth.signOut(),
+  };
+
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
