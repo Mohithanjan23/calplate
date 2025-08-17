@@ -7,7 +7,7 @@ import AuthPage from './pages/AuthPage';
 import OnboardingPage from './pages/OnboardingPage';
 import AppLayout from './pages/AppLayout';
 import DashboardPage from './pages/DashboardPage';
-import ProfilePage from './pages/ProfilePage';
+import ProfilePage from './pages/Profile';
 import LoadingSpinner from './components/LoadingSpinner';
 
 // A component to protect routes that require authentication

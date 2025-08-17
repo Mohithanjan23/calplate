@@ -9,7 +9,7 @@ import App from './App.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Onboarding from './pages/Onboarding.jsx';
-import Profile from './pages/ProfilePage.jsx';
+import Profile from './pages/Profile.jsx';
 import Settings from './pages/Settings.jsx'; // Add this missing import
 import Progress from './pages/Progress.jsx';
 

@@ -1,20 +1,18 @@
-import { useAuth } from '../contexts/AuthContext';
-import { User, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { LogOut, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function ProfilePage() {
+export default function Profile() {
     const { user, signOut } = useAuth();
 
     const handleSignOut = async () => {
         const { error } = await signOut();
-        if (error) {
-            toast.error("Failed to sign out.");
-        }
+        if (error) toast.error("Failed to sign out.");
     };
 
     return (
-      <div className="p-4 space-y-6">
-        <div className="flex items-center gap-4">
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border flex items-center gap-4">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
                 <User size={32} className="text-gray-500"/>
             </div>
@@ -24,11 +22,13 @@ export default function ProfilePage() {
             </div>
         </div>
         
+        {/* Additional profile info would be fetched and displayed here */}
+
         <button
           onClick={handleSignOut}
-          className="w-full bg-red-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-600 flex items-center justify-center space-x-2"
+          className="w-full bg-red-500 text-white py-3 rounded-lg font-medium hover:bg-red-600 flex items-center justify-center gap-2"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut size={20} />
           <span>Sign Out</span>
         </button>
       </div>
