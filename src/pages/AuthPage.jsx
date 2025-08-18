@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../services/supabaseClient'; // Make sure this path is correct
+import { supabase } from '../services/supabaseClient.js'; // Make sure this path is correct
 import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 

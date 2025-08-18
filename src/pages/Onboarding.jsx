@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext'; // Make sure this path is correct
-import { supabase } from '../services/supabaseClient'; // Make sure this path is correct
+import { useAuth } from '../contexts/AuthContext.jsx'; // Make sure this path is correct
+import { supabase } from '../services/supabaseClient.js'; // Make sure this path is correct
 import toast from 'react-hot-toast';
 
 export default function Onboarding() {
