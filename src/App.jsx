@@ -1,14 +1,15 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { DataProvider } from './contexts/DataContext';
-
-import AuthPage from './pages/AuthPage';
-import OnboardingPage from './pages/OnboardingPage';
-import AppLayout from './pages/AppLayout';
-import DashboardPage from './pages/DashboardPage';
-import ProfilePage from './pages/Profile';
-import LoadingSpinner from './components/LoadingSpinner';
+import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
+import { DataProvider } from './contexts/DataContext.jsx';
+import Header from './components/Header.jsx'; 
+import BottomNav from './components/BottomNav.jsx';
+import AuthPage from './pages/AuthPage.jsx';
+import OnboardingPage from './pages/OnboardingPage.jsx';
+import AppLayout from './pages/AppLayout.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
+import ProfilePage from './pages/Profile.jsx';
+import LoadingSpinner from './components/LoadingSpinner.jsx';
 
 // A component to protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
