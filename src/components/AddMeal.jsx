@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import { supabase } from '../services/supabaseClient';
+import { supabase } from '../services/supabaseClient.js';
 import toast from 'react-hot-toast';
 import { Camera } from 'lucide-react';
-import FoodScanner from './FoodScanner'; // Import the scanner component
+import FoodScanner from './components/FoodScanner.jsx'; // Import the scanner component
 
 export default function AddMeal({ onClose }) {
   const [mealData, setMealData] = useState({ name: '', calories: '', type: 'breakfast' });
