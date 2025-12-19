@@ -2,8 +2,6 @@
 
 This is my first project, built as an intern at Exposys Data Labs. Calplate is a simple calculator that can perform basic arithmetic operations like addition, subtraction, multiplication, and division.
 
-![Screenshot of Calplate Calculator](URL_TO_YOUR_SCREENSHOT_HERE) 
-*(You can take a screenshot of your calculator, upload it to the GitHub repository, and link to it here)*
 
 ## Features
 * Standard arithmetic operations (+, -, *, /)
