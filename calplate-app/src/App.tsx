@@ -7,6 +7,10 @@ import FoodScanner from './components/Meals/FoodScanner';
 import AddMeal from './components/Meals/AddMeal';
 import MealPrepHub from './components/MealPrep/MealPrepHub';
 import ShoppingList from './components/MealPrep/ShoppingList';
+import Insights from './components/Dashboard/Insights';
+import FitnessHub from './components/Fitness/FitnessHub';
+import WorkoutLogger from './components/Fitness/WorkoutLogger';
+import AICoach from './components/Fitness/AICoach';
 import { Loader2 } from 'lucide-react';
 
 function App() {
@@ -50,6 +54,10 @@ function App() {
         <Route path="/add-meal" element={session ? <AddMeal /> : <Navigate to="/onboarding" />} />
         <Route path="/meal-prep" element={session ? <MealPrepHub /> : <Navigate to="/onboarding" />} />
         <Route path="/shopping-list" element={session ? <ShoppingList /> : <Navigate to="/onboarding" />} />
+        <Route path="/insights" element={session ? <Insights /> : <Navigate to="/onboarding" />} />
+        <Route path="/fitness-hub" element={session ? <FitnessHub /> : <Navigate to="/onboarding" />} />
+        <Route path="/log-workout" element={session ? <WorkoutLogger /> : <Navigate to="/onboarding" />} />
+        <Route path="/ai-coach" element={session ? <AICoach /> : <Navigate to="/onboarding" />} />
         <Route path="/" element={<Navigate to={session ? "/dashboard" : "/onboarding"} />} />
       </Routes>
     </BrowserRouter>

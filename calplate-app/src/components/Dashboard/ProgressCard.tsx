@@ -1,47 +1,92 @@
+import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
 import { Flame } from 'lucide-react';
 
 interface ProgressCardProps {
     currentCalories: number;
     goalCalories: number;
+    burnedCalories?: number;
 }
 
-export default function ProgressCard({ currentCalories, goalCalories }: ProgressCardProps) {
-    const percentage = Math.min(Math.round((currentCalories / goalCalories) * 100), 100);
-    const remaining = goalCalories - currentCalories;
+export default function ProgressCard({ currentCalories, goalCalories, burnedCalories = 0 }: ProgressCardProps) {
+    // Net logic: Remaining = (Goal + Burned) - Consumed
+    const totalBudget = goalCalories + burnedCalories;
+    const remaining = totalBudget - currentCalories;
+    const isOver = remaining < 0;
 
-    // Logic: Green (<50%), Yellow (50-90%), Red (>90%)
-    // Spec says "Green-to-Red progress bar".
-    // Let's do a gradient or dynamic color.
+    // Data for the ring
+    const data = [
+        { name: 'Consumed', value: Math.min(currentCalories, totalBudget) },
+        { name: 'Remaining', value: Math.max(0, remaining) },
+    ];
 
-    let colorClass = 'bg-green-500';
-    if (percentage > 50) colorClass = 'bg-yellow-500';
-    if (percentage > 90) colorClass = 'bg-red-500';
+    // Colors
+    const COLORS = ['#6366f1', '#f1f5f9']; // Indigo-500, Slate-100
+    if (isOver) COLORS[0] = '#ef4444'; // Red-500 if over
+
+    // Calculate percentage for display (based on total budget)
+    const percentage = Math.round((currentCalories / totalBudget) * 100);
 
     return (
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
-            <div className="flex justify-between items-start mb-4 relative z-10">
-                <div>
-                    <h2 className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Daily Energy</h2>
-                    <div className="flex items-baseline gap-1 mt-1">
+            <div className="flex items-center justify-between mb-2">
+                <h2 className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Net Energy</h2>
+                <div className={`p-2 rounded-full ${isOver ? 'bg-red-50 text-red-500' : 'bg-indigo-50 text-indigo-500'}`}>
+                    <Flame className="w-5 h-5" />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+                {/* Ring Chart */}
+                <div className="h-32 w-32 relative">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={data}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={45}
+                                outerRadius={58}
+                                startAngle={90}
+                                endAngle={-270}
+                                dataKey="value"
+                                cornerRadius={10}
+                                stroke="none"
+                            >
+                                {data.map((_, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                                <Label
+                                    value={`${percentage}%`}
+                                    position="center"
+                                    className="text-xl font-bold fill-slate-900"
+                                    style={{ fontSize: '18px', fontWeight: 'bold' }}
+                                />
+                            </Pie>
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Stats Text */}
+                <div className="flex-1 pl-6">
+                    <div className="mb-2">
                         <span className="text-3xl font-bold text-slate-900">{currentCalories}</span>
-                        <span className="text-sm text-slate-400">/ {goalCalories} kcal</span>
+                        <span className="text-sm text-slate-400 block">/ {totalBudget} kcal (Net)</span>
                     </div>
-                </div>
-                <div className={`p-3 rounded-2xl ${percentage > 90 ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'}`}>
-                    <Flame className="w-6 h-6" />
+
+                    {burnedCalories > 0 && (
+                        <div className="mb-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded inline-block">
+                            + {burnedCalories} kcal earned
+                        </div>
+                    )}
+
+                    <p className={`text-xs font-medium ${isOver ? 'text-red-500' : 'text-slate-900'}`}>
+                        {isOver
+                            ? `${Math.abs(remaining)} kcal over limit`
+                            : `${remaining} kcal remaining`
+                        }
+                    </p>
                 </div>
             </div>
-
-            <div className="relative h-4 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                    className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out ${colorClass}`}
-                    style={{ width: `${percentage}%` }}
-                />
-            </div>
-
-            <p className="text-right text-xs text-slate-400 mt-2 font-medium">
-                {remaining > 0 ? `${remaining} kcal remaining` : `${Math.abs(remaining)} kcal over limit`}
-            </p>
         </div>
     );
 }

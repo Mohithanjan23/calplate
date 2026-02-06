@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Clock, Leaf, Calendar, Zap, ArrowLeft, Check } from 'lucide-react';
+import { ShoppingCart, Clock, Leaf, Calendar, Zap, ArrowLeft, Check, Plus } from 'lucide-react';
 
 const MOCK_RECIPES = {
     quick: [
@@ -89,20 +89,38 @@ export default function MealPrepHub() {
                 {MOCK_RECIPES[activeTab]?.map((recipe: any) => (
                     <div
                         key={recipe.id}
-                        onClick={() => toggleRecipe(recipe.id)}
-                        className={`bg-white p-4 rounded-2xl border transition-all cursor-pointer ${selectedRecipes.includes(recipe.id)
+                        className={`bg-white p-4 rounded-2xl border transition-all ${selectedRecipes.includes(recipe.id)
                             ? 'border-indigo-500 ring-1 ring-indigo-500 shadow-md bg-indigo-50/10'
                             : 'border-slate-100 shadow-sm'
                             }`}
                     >
                         <div className="flex justify-between items-start">
-                            <div>
+                            <div onClick={() => toggleRecipe(recipe.id)} className="cursor-pointer flex-1">
                                 <h3 className="font-bold text-slate-900">{recipe.name}</h3>
                                 <p className="text-sm text-slate-500 mt-1">{recipe.calories} kcal • {recipe.ingredients.length} ingredients</p>
                             </div>
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${selectedRecipes.includes(recipe.id) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-300'
-                                }`}>
-                                <Check className="w-4 h-4" />
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Simulate Supabase Insert
+                                        console.log(`Adding ${recipe.name} to meals table...`);
+                                        alert(`Added ${recipe.name} to Today's Log!`);
+                                    }}
+                                    className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-colors"
+                                    title="Add to Today"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
+
+                                <div
+                                    onClick={() => toggleRecipe(recipe.id)}
+                                    className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors cursor-pointer ${selectedRecipes.includes(recipe.id) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-300'
+                                        }`}
+                                >
+                                    <Check className="w-4 h-4" />
+                                </div>
                             </div>
                         </div>
                     </div>
