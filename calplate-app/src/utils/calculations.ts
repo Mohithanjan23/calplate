@@ -1,5 +1,6 @@
 export type Gender = 'male' | 'female';
 export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active';
+export type Goal = 'loss' | 'maintain' | 'gain';
 
 export interface UserStats {
     gender: Gender;
@@ -7,6 +8,7 @@ export interface UserStats {
     height: number; // cm
     age: number; // years
     activityLevel: ActivityLevel;
+    goal?: Goal;
 }
 
 export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
@@ -15,6 +17,12 @@ export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
     moderately_active: 1.55,
     very_active: 1.725,
     extra_active: 1.9,
+};
+
+export const GOAL_MULTIPLIERS: Record<Goal, number> = {
+    loss: 0.85,
+    maintain: 1,
+    gain: 1.15,
 };
 
 export function calculateBMR(stats: UserStats): number {
@@ -40,4 +48,10 @@ export function calculateTDEE(stats: UserStats): number {
     const bmr = calculateBMR(stats);
     const multiplier = ACTIVITY_MULTIPLIERS[stats.activityLevel];
     return Math.round(bmr * multiplier);
+}
+
+export function calculateGoalCalories(stats: UserStats): number {
+    const tdee = calculateTDEE(stats);
+    const goal = stats.goal || 'maintain';
+    return Math.round(tdee * GOAL_MULTIPLIERS[goal]);
 }
