@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { AuthScreen } from './components/Auth/AuthScreen';
 import { Onboarding } from './components/Auth/Onboarding';
@@ -51,7 +51,7 @@ function App() {
 
   const fetchUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase!
+      const { data } = await supabase!
         .from('profiles')
         .select('*')
         .eq('id', userId)
@@ -66,9 +66,10 @@ function App() {
   };
 
   const fetchMeals = async (userId: string) => {
-    const { data, error } = await supabase!
+    const { data } = await supabase!
       .from('meals')
       .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (data) setMeals(data);

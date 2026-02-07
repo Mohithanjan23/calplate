@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { LogOut, User, Activity, Target, Mail } from 'lucide-react';
+import { LogOut, Activity, Target, Mail } from 'lucide-react';
 
 interface ProfileProps {
     user: any;
