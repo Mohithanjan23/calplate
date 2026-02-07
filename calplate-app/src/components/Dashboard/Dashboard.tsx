@@ -1,94 +1,57 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
-import { LogOut, ChefHat, BarChart3 } from 'lucide-react';
-import ProgressCard from './ProgressCard';
-import FloatingActionButton from '../Navigation/FloatingActionButton';
-import NotificationCenter from './NotificationCenter';
-import StreakCalendar from './StreakCalendar';
-import PhotoJournal from '../Meals/PhotoJournal';
 
-export default function Dashboard() {
-    const navigate = useNavigate();
-    const [profile, setProfile] = useState<any>(null);
-    const [consumed] = useState(1250); // Mocked for demo
+import React from 'react';
+import { ProgressCard } from './ProgressCard';
+import { QuickStats } from './QuickStats';
+import { MealsList } from './MealsList';
 
-    useEffect(() => {
-        if (supabase) {
-            getProfile();
-        }
-    }, []);
+interface DashboardProps {
+    user: any;
+    meals: any[];
+    onDeleteMeal: (id: number) => void;
+}
 
-    const getProfile = async () => {
-        if (!supabase) return;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            const { data } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-            setProfile(data);
-        }
-    };
+export const Dashboard: React.FC<DashboardProps> = ({ user, meals, onDeleteMeal }) => {
+    // Calculate stats
+    const today = new Date().toDateString();
+    const todayMeals = meals.filter(m =>
+        new Date(m.created_at).toDateString() === today
+    );
 
-    const handleSignOut = async () => {
-        if (!supabase) return;
-        await supabase.auth.signOut();
-        navigate('/');
-    };
+    const todayCalories = todayMeals.reduce((sum, m) => sum + m.calories, 0);
+    const avgCalories = Math.round(todayCalories / Math.max(1, todayMeals.length));
+
+    // Calculate streak (Mock logic for now, or based on unique dates in meals if we had full history loaded)
+    // For MVP, simplistic streak of days active can be calculated in parent or passed down.
+    // Using a placeholder or simple logic here.
+    const uniqueDates = new Set(meals.map(m => new Date(m.created_at).toDateString()));
+    const streak = uniqueDates.size;
 
     return (
-        <div className="min-h-screen bg-slate-50 p-6 pb-24">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-                    <p className="text-slate-500">Welcome back</p>
-                </div>
-                <button onClick={handleSignOut} className="p-2 bg-white border border-slate-200 rounded-full hover:bg-slate-100 transition-colors">
-                    <LogOut className="w-5 h-5 text-slate-600" />
-                </button>
+        <div className="p-6 pb-24 max-w-md mx-auto">
+            {/* Header */}
+            <div className="mb-6 pt-2">
+                <h1 className="text-2xl font-bold text-gray-900">
+                    Hello, {user?.name?.split(' ')[0] || 'Friend'}! 👋
+                </h1>
+                <p className="text-gray-500 text-sm">Track your nutrition with AI assistance</p>
             </div>
 
-            <NotificationCenter />
+            {/* Progress Card */}
+            <ProgressCard
+                currentCalories={todayCalories}
+                goalCalories={user?.calorie_goal || 2000}
+            />
 
-            {profile && (
-                <div className="space-y-6">
-                    <ProgressCard
-                        currentCalories={consumed}
-                        goalCalories={profile.calorie_goal || 2000}
-                        burnedCalories={350} // Mocked exercise
-                    />
+            {/* Quick Stats */}
+            <QuickStats
+                todayMealsCount={todayMeals.length}
+                avgCalories={avgCalories}
+                streak={streak}
+            />
 
-                    <PhotoJournal />
+            {/* Meals List */}
+            <MealsList meals={todayMeals} onDelete={onDeleteMeal} />
 
-                    <StreakCalendar />
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div
-                            onClick={() => navigate('/meal-prep')}
-                            className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-indigo-200 transition-colors aspect-square"
-                        >
-                            <div className="p-3 bg-indigo-50 rounded-full text-indigo-600">
-                                <ChefHat className="w-6 h-6" />
-                            </div>
-                            <span className="font-semibold text-slate-900">Meal Prep</span>
-                        </div>
-
-                        <div
-                            onClick={() => navigate('/insights')}
-                            className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-indigo-200 transition-colors aspect-square"
-                        >
-                            <div className="p-3 bg-indigo-50 rounded-full text-indigo-600">
-                                <BarChart3 className="w-6 h-6" />
-                            </div>
-                            <span className="font-semibold text-slate-900">Insights</span>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <FloatingActionButton />
         </div>
     );
-}
+};

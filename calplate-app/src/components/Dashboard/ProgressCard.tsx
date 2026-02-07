@@ -1,92 +1,52 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Label } from 'recharts';
-import { Flame } from 'lucide-react';
+
+import React from 'react';
+import { Target, Flame, TrendingUp } from 'lucide-react';
 
 interface ProgressCardProps {
     currentCalories: number;
     goalCalories: number;
-    burnedCalories?: number;
 }
 
-export default function ProgressCard({ currentCalories, goalCalories, burnedCalories = 0 }: ProgressCardProps) {
-    // Net logic: Remaining = (Goal + Burned) - Consumed
-    const totalBudget = goalCalories + burnedCalories;
-    const remaining = totalBudget - currentCalories;
-    const isOver = remaining < 0;
-
-    // Data for the ring
-    const data = [
-        { name: 'Consumed', value: Math.min(currentCalories, totalBudget) },
-        { name: 'Remaining', value: Math.max(0, remaining) },
-    ];
-
-    // Colors
-    const COLORS = ['#6366f1', '#f1f5f9']; // Indigo-500, Slate-100
-    if (isOver) COLORS[0] = '#ef4444'; // Red-500 if over
-
-    // Calculate percentage for display (based on total budget)
-    const percentage = Math.round((currentCalories / totalBudget) * 100);
+export const ProgressCard: React.FC<ProgressCardProps> = ({ currentCalories, goalCalories }) => {
+    const percentage = Math.min(100, Math.round((currentCalories / goalCalories) * 100));
+    const remaining = Math.max(0, goalCalories - currentCalories);
 
     return (
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
-            <div className="flex items-center justify-between mb-2">
-                <h2 className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Net Energy</h2>
-                <div className={`p-2 rounded-full ${isOver ? 'bg-red-50 text-red-500' : 'bg-indigo-50 text-indigo-500'}`}>
-                    <Flame className="w-5 h-5" />
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                    <div className="bg-green-100 p-2 rounded-lg">
+                        <Target className="w-5 h-5 text-green-600" />
+                    </div>
+                    <h3 className="font-semibold text-gray-800">Today's Progress</h3>
                 </div>
+                <span className="text-sm font-medium text-gray-500">
+                    {percentage}% of goal
+                </span>
             </div>
 
-            <div className="flex items-center justify-between">
-                {/* Ring Chart */}
-                <div className="h-32 w-32 relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={data}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={45}
-                                outerRadius={58}
-                                startAngle={90}
-                                endAngle={-270}
-                                dataKey="value"
-                                cornerRadius={10}
-                                stroke="none"
-                            >
-                                {data.map((_, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                                <Label
-                                    value={`${percentage}%`}
-                                    position="center"
-                                    className="text-xl font-bold fill-slate-900"
-                                    style={{ fontSize: '18px', fontWeight: 'bold' }}
-                                />
-                            </Pie>
-                        </PieChart>
-                    </ResponsiveContainer>
+            <div className="flex items-end gap-2 mb-2">
+                <span className="text-4xl font-bold text-gray-900">{currentCalories}</span>
+                <span className="text-gray-500 mb-1.5 font-medium">/ {goalCalories} cal</span>
+            </div>
+
+            <div className="w-full bg-gray-100 rounded-full h-3 mb-4 overflow-hidden">
+                <div
+                    className="bg-gradient-to-r from-green-500 to-green-600 h-full rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${percentage}%` }}
+                />
+            </div>
+
+            <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center gap-1.5 text-gray-600">
+                    <Flame className="w-4 h-4 text-orange-500" />
+                    <span>{remaining} cal remaining</span>
                 </div>
-
-                {/* Stats Text */}
-                <div className="flex-1 pl-6">
-                    <div className="mb-2">
-                        <span className="text-3xl font-bold text-slate-900">{currentCalories}</span>
-                        <span className="text-sm text-slate-400 block">/ {totalBudget} kcal (Net)</span>
-                    </div>
-
-                    {burnedCalories > 0 && (
-                        <div className="mb-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded inline-block">
-                            + {burnedCalories} kcal earned
-                        </div>
-                    )}
-
-                    <p className={`text-xs font-medium ${isOver ? 'text-red-500' : 'text-slate-900'}`}>
-                        {isOver
-                            ? `${Math.abs(remaining)} kcal over limit`
-                            : `${remaining} kcal remaining`
-                        }
-                    </p>
+                <div className="flex items-center gap-1.5 text-blue-600 font-medium">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Keep going!</span>
                 </div>
             </div>
         </div>
     );
-}
+};

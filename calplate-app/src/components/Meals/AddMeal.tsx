@@ -1,137 +1,147 @@
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Star, Minus, Plus } from 'lucide-react';
 
-export default function AddMeal() {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const initialData = location.state?.scannedData || {};
+import React, { useState } from 'react';
+import { X, Camera, Edit3 } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
+import { CommonFoods } from './CommonFoods';
+import { FoodScanner } from './FoodScanner';
 
-    const [baseMeal, setBaseMeal] = useState({
-        name: initialData.name || '',
-        calories: Number(initialData.calories) || 0,
-        protein: Number(initialData.protein) || 0,
-        carbs: Number(initialData.carbs) || 0,
-        fat: Number(initialData.fat) || 0,
-    });
+interface AddMealProps {
+    onClose: () => void;
+    onAdd: () => void;
+    userId: string;
+}
 
-    const [portion, setPortion] = useState(1);
+export const AddMeal: React.FC<AddMealProps> = ({ onClose, onAdd, userId }) => {
+    const [activeTab, setActiveTab] = useState<'scan' | 'manual'>('scan');
+    const [name, setName] = useState('');
+    const [calories, setCalories] = useState('');
+    const [type, setType] = useState('breakfast');
+    const [loading, setLoading] = useState(false);
 
-    // Derived state for display
-    const displayedStats = {
-        calories: Math.round(baseMeal.calories * portion),
-        protein: Math.round(baseMeal.protein * portion),
-        carbs: Math.round(baseMeal.carbs * portion),
-        fat: Math.round(baseMeal.fat * portion),
+    const handleSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (!name || !calories) return;
+
+        setLoading(true);
+        try {
+            const { error } = await supabase!
+                .from('meals')
+                .insert({
+                    user_id: userId,
+                    name,
+                    calories: Number(calories),
+                    type,
+                    created_at: new Date().toISOString()
+                });
+
+            if (error) throw error;
+            onAdd();
+        } catch (err) {
+            console.error('Error adding meal:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleSave = async () => {
-        // TODO: Save to database with displayedStats
-        console.log("Saving meal:", { ...baseMeal, ...displayedStats, portion });
-        navigate('/dashboard');
-    };
-
-    const QUICK_LOGS = [
-        { name: 'Oatmeal', calories: 150, protein: 5, carbs: 27, fat: 3 },
-        { name: 'Banana', calories: 105, protein: 1, carbs: 27, fat: 0 },
-        { name: 'Protein Shake', calories: 120, protein: 25, carbs: 2, fat: 1 },
-    ];
-
-    const loadQuickLog = (item: any) => {
-        setBaseMeal({
-            name: item.name,
-            calories: item.calories,
-            protein: item.protein,
-            carbs: item.carbs,
-            fat: item.fat
-        });
-        setPortion(1);
+    const handleFoodSelect = (food: { name: string; calories: number }) => {
+        setName(food.name);
+        setCalories(food.calories.toString());
+        setActiveTab('manual'); // Switch to manual to review/edit before submit
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 p-4 pb-20">
-            <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full border border-slate-200">
-                    <ArrowLeft className="w-5 h-5" />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom-10 duration-300">
+
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"
+                >
+                    <X className="w-5 h-5" />
                 </button>
-                <h1 className="text-xl font-bold">Add Meal</h1>
-            </div>
 
-            <div className="space-y-6">
-                {/* Manual Input Card */}
-                <div className="bg-white p-6 rounded-3xl shadow-sm space-y-4">
-                    <div>
-                        <label className="text-sm font-medium text-slate-700">Meal Name</label>
-                        <input
-                            value={baseMeal.name}
-                            onChange={e => setBaseMeal({ ...baseMeal, name: e.target.value })}
-                            className="w-full p-3 mt-1 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
-                            placeholder="e.g. Grilled Chicken Salad"
-                        />
-                    </div>
+                <h2 className="text-xl font-bold mb-6">Log Meal</h2>
 
-                    <div className="p-4 bg-slate-50 rounded-2xl">
-                        <div className="flex justify-between items-center mb-4">
-                            <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Portion Size</span>
-                            <span className="text-lg font-bold text-indigo-600">{portion}x</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <button onClick={() => setPortion(p => Math.max(0.5, p - 0.5))} className="p-2 bg-white rounded-full shadow-sm text-slate-400 hover:text-indigo-600">
-                                <Minus className="w-4 h-4" />
-                            </button>
-                            <input
-                                type="range"
-                                min="0.5"
-                                max="3"
-                                step="0.5"
-                                value={portion}
-                                onChange={(e) => setPortion(parseFloat(e.target.value))}
-                                className="flex-1 accent-indigo-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                            />
-                            <button onClick={() => setPortion(p => Math.min(3, p + 0.5))} className="p-2 bg-white rounded-full shadow-sm text-slate-400 hover:text-indigo-600">
-                                <Plus className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-indigo-50 p-3 rounded-2xl border border-indigo-100">
-                            <label className="text-xs font-bold text-indigo-400 uppercase">Calories</label>
-                            <div className="text-2xl font-bold text-indigo-900">{displayedStats.calories}</div>
-                        </div>
-                        <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                            <label className="text-xs font-bold text-slate-400 uppercase">Protein</label>
-                            <div className="text-2xl font-bold text-slate-700">{displayedStats.protein}g</div>
-                        </div>
-                    </div>
-
-                    <button onClick={handleSave} className="w-full bg-indigo-600 text-white p-4 rounded-xl font-semibold flex items-center justify-center gap-2 mt-4 shadow-lg shadow-indigo-200">
-                        <Save className="w-5 h-5" /> Save To Journal
+                {/* Tabs */}
+                <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+                    <button
+                        onClick={() => setActiveTab('scan')}
+                        className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all ${activeTab === 'scan' ? 'bg-white shadow-sm text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        <Camera className="w-4 h-4" /> AI Scan
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('manual')}
+                        className={`flex-1 py-2 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all ${activeTab === 'manual' ? 'bg-white shadow-sm text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        <Edit3 className="w-4 h-4" /> Manual
                     </button>
                 </div>
 
-                {/* Quick Log Favorites */}
-                <div>
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Quick Log Favorites</h3>
-                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
-                        {QUICK_LOGS.map((item, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => loadQuickLog(item)}
-                                className="flex-shrink-0 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 pr-4 group hover:border-indigo-200 transition-all"
-                            >
-                                <div className="p-2 bg-yellow-50 rounded-full text-yellow-500">
-                                    <Star className="w-4 h-4 fill-yellow-500" />
-                                </div>
-                                <div className="text-left">
-                                    <div className="font-bold text-slate-900 text-sm">{item.name}</div>
-                                    <div className="text-xs text-slate-400">{item.calories} kcal</div>
-                                </div>
-                            </button>
-                        ))}
+                {activeTab === 'scan' ? (
+                    <div className="space-y-6">
+                        <FoodScanner onDetected={(food) => handleFoodSelect(food)} />
+
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="h-px bg-gray-200 flex-1" />
+                                <span className="text-xs text-gray-400 font-medium">QUICK ADD</span>
+                                <div className="h-px bg-gray-200 flex-1" />
+                            </div>
+                            <CommonFoods onSelect={handleFoodSelect} />
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Meal Name</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                placeholder="e.g., Oatmeal"
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Calories</label>
+                                <input
+                                    type="number"
+                                    value={calories}
+                                    onChange={(e) => setCalories(e.target.value)}
+                                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                <select
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value)}
+                                    className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white"
+                                >
+                                    <option value="breakfast">Breakfast</option>
+                                    <option value="lunch">Lunch</option>
+                                    <option value="dinner">Dinner</option>
+                                    <option value="snack">Snack</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading || !name || !calories}
+                            className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 mt-4 shadow-lg shadow-green-200"
+                        >
+                            {loading ? 'Adding...' : 'Add Meal'}
+                        </button>
+                    </form>
+                )}
+
             </div>
         </div>
     );
-}
+};

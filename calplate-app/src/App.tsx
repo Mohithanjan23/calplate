@@ -1,66 +1,153 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
+import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
-import Onboarding from './components/Onboarding/Onboarding';
-import Dashboard from './components/Dashboard/Dashboard';
-import FoodScanner from './components/Meals/FoodScanner';
-import AddMeal from './components/Meals/AddMeal';
-import MealPrepHub from './components/MealPrep/MealPrepHub';
-import ShoppingList from './components/MealPrep/ShoppingList';
-import Insights from './components/Dashboard/Insights';
-import FitnessHub from './components/Fitness/FitnessHub';
-import WorkoutLogger from './components/Fitness/WorkoutLogger';
-import AICoach from './components/Fitness/AICoach';
-import { Loader2 } from 'lucide-react';
+import { AuthScreen } from './components/Auth/AuthScreen';
+import { Onboarding } from './components/Auth/Onboarding';
+import { BottomNav } from './components/Navigation/BottomNav';
+import { FloatingActionButton } from './components/Navigation/FloatingActionButton';
+import { Dashboard } from './components/Dashboard/Dashboard';
+import { Profile } from './components/Profile/Profile';
+import { AddMeal } from './components/Meals/AddMeal';
+import { MealPrepHub } from './components/MealPrep/MealPrepHub';
 
 function App() {
   const [session, setSession] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [meals, setMeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [showAddMeal, setShowAddMeal] = useState(false);
 
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Get initial session
+    supabase!.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
+        fetchMeals(session.user.id);
+      } else {
+        setLoading(false);
+      }
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase!.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        if (session?.user) {
+          fetchUserProfile(session.user.id);
+          fetchMeals(session.user.id);
+        } else {
+          setSession(null);
+          setUserProfile(null);
+          setMeals([]);
+          setLoading(false);
+        }
+      }
+    );
 
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase!
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (data) setUserProfile(data);
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMeals = async (userId: string) => {
+    const { data, error } = await supabase!
+      .from('meals')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (data) setMeals(data);
+  };
+
+  const handleAddMealSuccess = () => {
+    if (session?.user) {
+      fetchMeals(session.user.id);
+      setShowAddMeal(false);
+    }
+  };
+
+  const handleDeleteMeal = async (id: number) => {
+    const { error } = await supabase!
+      .from('meals')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setMeals(meals.filter(m => m.id !== id));
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-indigo-600">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading Calplate...</p>
+        </div>
       </div>
     );
   }
 
+  // Auth Flow
+  if (!session) {
+    return <AuthScreen onAuthSuccess={() => { }} />;
+  }
+
+  if (!userProfile) {
+    return <Onboarding userId={session.user.id} onComplete={() => fetchUserProfile(session.user.id)} />;
+  }
+
+  // Main App
+  const renderView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <Dashboard user={userProfile} meals={meals} onDeleteMeal={handleDeleteMeal} />;
+      case 'meals':
+        return <Dashboard user={userProfile} meals={meals} onDeleteMeal={handleDeleteMeal} />; // Re-using dashboard/meals list for now
+      case 'meal-prep':
+        return <MealPrepHub userId={userProfile.id} onMealAdded={() => fetchMeals(userProfile.id)} />;
+      case 'profile':
+        return <Profile user={userProfile} meals={meals} />;
+      default:
+        return <Dashboard user={userProfile} meals={meals} onDeleteMeal={handleDeleteMeal} />;
+    }
+  };
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/onboarding" element={!session ? <Onboarding /> : <Navigate to="/dashboard" />} />
-        <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/onboarding" />} />
-        <Route path="/scanner" element={session ? <FoodScanner /> : <Navigate to="/onboarding" />} />
-        <Route path="/add-meal" element={session ? <AddMeal /> : <Navigate to="/onboarding" />} />
-        <Route path="/meal-prep" element={session ? <MealPrepHub /> : <Navigate to="/onboarding" />} />
-        <Route path="/shopping-list" element={session ? <ShoppingList /> : <Navigate to="/onboarding" />} />
-        <Route path="/insights" element={session ? <Insights /> : <Navigate to="/onboarding" />} />
-        <Route path="/fitness-hub" element={session ? <FitnessHub /> : <Navigate to="/onboarding" />} />
-        <Route path="/log-workout" element={session ? <WorkoutLogger /> : <Navigate to="/onboarding" />} />
-        <Route path="/ai-coach" element={session ? <AICoach /> : <Navigate to="/onboarding" />} />
-        <Route path="/" element={<Navigate to={session ? "/dashboard" : "/onboarding"} />} />
-      </Routes>
-    </BrowserRouter>
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">
+
+      {renderView()}
+
+      {currentView !== 'profile' && (
+        <FloatingActionButton onClick={() => setShowAddMeal(true)} />
+      )}
+
+      <BottomNav currentView={currentView} onNavigate={setCurrentView} />
+
+      {showAddMeal && (
+        <AddMeal
+          onClose={() => setShowAddMeal(false)}
+          onAdd={handleAddMealSuccess}
+          userId={session.user.id}
+        />
+      )}
+
+    </div>
   );
 }
 
