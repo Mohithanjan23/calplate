@@ -1,14 +1,16 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { AuthScreen } from './components/Auth/AuthScreen';
 import { Onboarding } from './components/Auth/Onboarding';
 import { BottomNav } from './components/Navigation/BottomNav';
 import { FloatingActionButton } from './components/Navigation/FloatingActionButton';
 import { Dashboard } from './components/Dashboard/Dashboard';
-import { Profile } from './components/Profile/Profile';
-import { AddMeal } from './components/Meals/AddMeal';
-import { MealPrepHub } from './components/MealPrep/MealPrepHub';
+
+// Lazy load heavy features
+const Profile = lazy(() => import('./components/Profile/Profile').then(module => ({ default: module.Profile })));
+const MealPrepHub = lazy(() => import('./components/MealPrep/MealPrepHub').then(module => ({ default: module.MealPrepHub })));
+const AddMeal = lazy(() => import('./components/Meals/AddMeal').then(module => ({ default: module.AddMeal })));
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -93,6 +95,13 @@ function App() {
     }
   };
 
+  // Loading Spinner Component
+  const LoadingSpinner = () => (
+    <div className="flex justify-center items-center p-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -119,11 +128,19 @@ function App() {
       case 'dashboard':
         return <Dashboard user={userProfile} meals={meals} onDeleteMeal={handleDeleteMeal} />;
       case 'meals':
-        return <Dashboard user={userProfile} meals={meals} onDeleteMeal={handleDeleteMeal} />; // Re-using dashboard/meals list for now
+        return <Dashboard user={userProfile} meals={meals} onDeleteMeal={handleDeleteMeal} />;
       case 'meal-prep':
-        return <MealPrepHub userId={userProfile.id} onMealAdded={() => fetchMeals(userProfile.id)} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <MealPrepHub userId={userProfile.id} onMealAdded={() => fetchMeals(userProfile.id)} />
+          </Suspense>
+        );
       case 'profile':
-        return <Profile user={userProfile} meals={meals} />;
+        return (
+          <Suspense fallback={<LoadingSpinner />}>
+            <Profile user={userProfile} meals={meals} />
+          </Suspense>
+        );
       default:
         return <Dashboard user={userProfile} meals={meals} onDeleteMeal={handleDeleteMeal} />;
     }
@@ -141,11 +158,13 @@ function App() {
       <BottomNav currentView={currentView} onNavigate={setCurrentView} />
 
       {showAddMeal && (
-        <AddMeal
-          onClose={() => setShowAddMeal(false)}
-          onAdd={handleAddMealSuccess}
-          userId={session.user.id}
-        />
+        <Suspense fallback={null}>
+          <AddMeal
+            onClose={() => setShowAddMeal(false)}
+            onAdd={handleAddMealSuccess}
+            userId={session.user.id}
+          />
+        </Suspense>
       )}
 
     </div>
